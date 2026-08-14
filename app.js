@@ -911,43 +911,136 @@ function showToast(message) {
    LOAD DATABASE
 ========================= */
 
+const sleep = ms =>
+  new Promise(resolve => setTimeout(resolve, ms));
+
+async function withRetry(loader, name, attempts = 3) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      console.log(
+        `[CLASSHUB] Memuat ${name}... percobaan ${attempt}/${attempts}`
+      );
+
+      await loader();
+
+      console.log(
+        `[CLASSHUB] ${name} berhasil dimuat.`
+      );
+
+      return true;
+
+    } catch (error) {
+      lastError = error;
+
+      console.error(
+        `[CLASSHUB] ${name} gagal:`,
+        error
+      );
+
+      if (attempt < attempts) {
+        await sleep(1200);
+      }
+    }
+  }
+
+  console.error(
+    `[CLASSHUB] ${name} gagal setelah ${attempts} percobaan.`,
+    lastError
+  );
+
+  return false;
+}
+
+function showDatabaseStatus(message) {
+  const toast = document.getElementById("toast");
+
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.add("show");
+}
+
 async function loadAll() {
 
-  try {
+  console.log(
+    "[CLASSHUB] Memulai koneksi database..."
+  );
 
-    await loadStudents();
+  showDatabaseStatus(
+    "Menghubungkan ke database..."
+  );
 
-    await Promise.all([
-      loadSchedules(),
-      loadAnnouncements()
-    ]);
+  /*
+   * Siswa, jadwal, dan pengumuman
+   * dimuat secara bersamaan agar
+   * halaman lebih cepat tampil.
+   */
+  const results = await Promise.all([
+    withRetry(
+      loadStudents,
+      "data siswa"
+    ),
 
-    await loadDuty();
+    withRetry(
+      loadSchedules,
+      "jadwal pelajaran"
+    ),
+
+    withRetry(
+      loadAnnouncements,
+      "pengumuman"
+    )
+  ]);
+
+  /*
+   * Jadwal piket membutuhkan data siswa
+   * untuk mencocokkan student_id dengan
+   * nama siswa.
+   */
+  const dutyLoaded = await withRetry(
+    loadDuty,
+    "jadwal piket"
+  );
+
+  /*
+   * Update dashboard setelah data
+   * selesai dimuat.
+   */
+  renderDashboard();
+
+  const allSuccess =
+    results.every(Boolean) &&
+    dutyLoaded;
+
+  if (allSuccess) {
+
+    showDatabaseStatus(
+      "CLASSHUB siap digunakan ✓"
+    );
 
     console.log(
-      "CLASSHUB berhasil terhubung ke Supabase."
+      "[CLASSHUB] Semua data berhasil dimuat."
     );
 
-  } catch (error) {
+    setTimeout(() => {
+      const toast =
+        document.getElementById("toast");
 
-    console.error(
-      "CLASSHUB DATABASE ERROR:",
-      error
+      if (toast) {
+        toast.classList.remove("show");
+      }
+    }, 1800);
+
+  } else {
+
+    showDatabaseStatus(
+      "Sebagian data gagal dimuat. Coba refresh."
     );
 
-    const toast =
-      document.getElementById("toast");
-
-    toast.textContent =
-      "Database error: " +
-      error.message;
-
-    toast.classList.add("show");
-
-    setTimeout(
-      () =>
-        toast.classList.remove("show"),
-      6000
+    console.warn(
+      "[CLASSHUB] Sebagian data gagal dimuat."
     );
   }
 }
