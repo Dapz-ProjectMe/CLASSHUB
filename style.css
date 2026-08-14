@@ -23,3 +23,287 @@ header{height:64px;padding:0 14px}
 footer{padding:17px 13px;gap:7px}
 }
 @media(max-width:380px){.stats{grid-template-columns:1fr}.features{grid-template-columns:1fr}.hero h1{font-size:23px}.headright .iconbtn:first-child{display:none}}
+
+/* =====================================================
+   CLASSHUB ADMIN PANEL
+   Tambahan Admin Panel V2.1
+===================================================== */
+
+.adminLogo{
+  width:58px;
+  height:58px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  background:#2563eb;
+  color:#fff;
+  font-size:24px;
+  margin-bottom:15px
+}
+
+.adminTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:15px
+}
+
+.adminTop h2{
+  margin:5px 0
+}
+
+.adminTop p{
+  margin:0 0 15px;
+  color:#64748b
+}
+
+.logoutBtn,
+.adminBack,
+.adminAdd{
+  border:0;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-weight:700
+}
+
+.logoutBtn{
+  background:#fee2e2;
+  color:#b91c1c
+}
+
+.adminTabs{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin:18px 0
+}
+
+.adminTab{
+  border:0;
+  padding:11px 8px;
+  border-radius:10px;
+  background:#f1f5f9;
+  color:#475569;
+  cursor:pointer;
+  font-weight:700
+}
+
+.adminTab.active{
+  background:#2563eb;
+  color:#fff
+}
+
+.adminSectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:15px
+}
+
+.adminSectionHead h3{
+  margin:4px 0 0
+}
+
+.adminAdd{
+  background:#2563eb;
+  color:#fff
+}
+
+.adminContent label{
+  display:block;
+  margin:12px 0 6px;
+  font-size:13px;
+  font-weight:700
+}
+
+.adminContent input,
+.adminContent textarea,
+.adminContent select,
+#adminLoginForm input{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #dbe3ef;
+  border-radius:11px;
+  padding:12px;
+  outline:none;
+  background:#fff;
+  font:inherit
+}
+
+.adminContent input:focus,
+.adminContent textarea:focus,
+.adminContent select:focus,
+#adminLoginForm input:focus{
+  border-color:#2563eb
+}
+
+.adminPrimary{
+  width:100%;
+  border:0;
+  border-radius:12px;
+  padding:13px;
+  margin-top:12px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer
+}
+
+.adminItem{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid #e5eaf1;
+  border-radius:13px;
+  margin-bottom:8px;
+  background:#fff
+}
+
+.adminAvatar{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#eff6ff;
+  color:#2563eb;
+  font-weight:800
+}
+
+.adminItemInfo{
+  min-width:0;
+  flex:1
+}
+
+.adminItemInfo b,
+.adminItemInfo small{
+  display:block
+}
+
+.adminItemInfo b{
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.adminItemInfo small{
+  margin-top:3px;
+  color:#64748b;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.adminActions{
+  display:flex;
+  gap:5px
+}
+
+.adminActions button{
+  border:0;
+  background:#f1f5f9;
+  border-radius:9px;
+  width:36px;
+  height:36px;
+  cursor:pointer
+}
+
+.adminActions button:hover{
+  background:#eff6ff;
+  color:#2563eb
+}
+
+.adminBack{
+  background:#f1f5f9;
+  color:#475569
+}
+
+.adminError{
+  color:#dc2626!important;
+  font-size:13px!important;
+  margin-top:10px!important
+}
+
+/* =========================
+   ADMIN MOBILE
+========================= */
+
+@media(max-width:600px){
+
+  .modal{
+    padding:10px;
+    align-items:end
+  }
+
+  .modalbox{
+    width:100%;
+    max-height:92vh;
+    overflow-y:auto;
+    border-radius:20px 20px 0 0;
+    padding:18px
+  }
+
+  .adminTabs{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .adminTop{
+    flex-direction:column;
+    gap:10px
+  }
+
+  .logoutBtn{
+    align-self:flex-start
+  }
+
+  .adminSectionHead{
+    align-items:flex-start
+  }
+
+  .adminItem{
+    padding:10px;
+  }
+
+  .adminItemInfo b{
+    font-size:14px
+  }
+
+  .adminItemInfo small{
+    font-size:11px
+  }
+
+  .adminActions button{
+    width:34px;
+    height:34px
+  }
+
+  .adminContent label{
+    font-size:12px
+  }
+
+  .adminContent input,
+  .adminContent textarea,
+  .adminContent select{
+    font-size:14px
+  }
+
+}
+
+@media(max-width:380px){
+
+  .adminTabs{
+    gap:6px
+  }
+
+  .adminTab{
+    padding:10px 5px;
+    font-size:12px
+  }
+
+  .adminTop h2{
+    font-size:17px
+  }
+
+}
