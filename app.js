@@ -1,54 +1,955 @@
-const students=["Aditya Pratama","Ahmad Fauzan","Aldi Saputra","Andika Wijaya","Bagas Ramadhan","Bima Setiawan","Cahyo Nugroho","Daffa Nurkhalish","Dani Kurniawan","Dimas Saputra","Fajar Ramadhan","Fauzan Akbar","Galang Pratama","Hafiz Maulana","Ilham Saputra","Joko Susanto","Kevin Alvaro","Lukman Hakim","M. Rizky","M. Fadli","Nanda Putra","Naufal Ramadhan","Noval Ardiansyah","Putra Wijaya","Raka Aditya","Rangga Saputra","Reza Fahlevi","Rizal Maulana","Salsa Putri","Siti Aisyah","Tasya Amelia","Vina Lestari","Wahyu Hidayat","Yogi Prasetyo","Zaki Ramadhan","Zulfan Akbar"];
+import { supabase } from "./supabase/client.js";
 
-const schedules={
-senin:[["07:00","08:30","Bahasa Indonesia","Bapak/Ibu Guru","X APAT 1"],["08:30","10:00","Matematika","Bapak/Ibu Guru","X APAT 1"],["10:15","11:45","Produktif APAT","Bapak/Ibu Guru","Lab APAT"],["12:30","14:00","Pendidikan Agama","Bapak/Ibu Guru","X APAT 1"]],
-selasa:[["07:00","08:30","Bahasa Inggris","Bapak/Ibu Guru","X APAT 1"],["08:30","10:00","Produktif APAT","Bapak/Ibu Guru","Lab APAT"],["10:15","11:45","IPAS","Bapak/Ibu Guru","X APAT 1"],["12:30","14:00","PJOK","Bapak/Ibu Guru","Lapangan"]],
-rabu:[["07:00","08:30","Matematika","Bapak/Ibu Guru","X APAT 1"],["08:30","10:00","Bahasa Inggris","Bapak/Ibu Guru","X APAT 1"],["10:15","11:45","Produktif APAT","Bapak/Ibu Guru","Lab APAT"],["12:30","14:00","Sejarah","Bapak/Ibu Guru","X APAT 1"]],
-kamis:[["07:00","08:30","Bahasa Indonesia","Bapak/Ibu Guru","X APAT 1"],["08:30","10:00","Produktif APAT","Bapak/Ibu Guru","Lab APAT"],["10:15","11:45","Pendidikan Pancasila","Bapak/Ibu Guru","X APAT 1"],["12:30","14:00","Seni Budaya","Bapak/Ibu Guru","X APAT 1"]],
-jumat:[["07:00","08:30","Pendidikan Agama","Bapak/Ibu Guru","X APAT 1"],["08:30","10:00","Bahasa Inggris","Bapak/Ibu Guru","X APAT 1"],["10:15","11:45","Produktif APAT","Bapak/Ibu Guru","Lab APAT"]]};
+const SUPABASE = supabase;
 
-const announcements=[
-{title:"Selamat Datang di CLASSHUB",content:"CLASSHUB merupakan pusat informasi digital untuk seluruh anggota X APAT 1.",type:"info",label:"INFO",date:"14 Agustus 2026"},
-{title:"Persiapan Kegiatan Kelas",content:"Mohon seluruh siswa memperhatikan informasi kegiatan kelas yang akan datang.",type:"important",label:"PENTING",date:"14 Agustus 2026"},
-{title:"Jaga Kebersihan Kelas",content:"Jangan lupa melaksanakan jadwal piket sesuai pembagian masing-masing.",type:"info",label:"INFO",date:"13 Agustus 2026"}];
+const names = {
+  senin: "Senin",
+  selasa: "Selasa",
+  rabu: "Rabu",
+  kamis: "Kamis",
+  jumat: "Jumat"
+};
 
-const dutySchedule={
-senin:["Aditya Pratama","Daffa Nurkhalish","Fajar Ramadhan","Galang Pratama","Hafiz Maulana","Rizal Maulana","Salsa Putri"],
-selasa:["Ahmad Fauzan","Bima Setiawan","Dani Kurniawan","Ilham Saputra","Nanda Putra","Tasya Amelia","Wahyu Hidayat"],
-rabu:["Aldi Saputra","Bagas Ramadhan","Dimas Saputra","Joko Susanto","Naufal Ramadhan","Vina Lestari","Yogi Prasetyo"],
-kamis:["Andika Wijaya","Cahyo Nugroho","Fauzan Akbar","Kevin Alvaro","Noval Ardiansyah","Raka Aditya","Zaki Ramadhan"],
-jumat:["M. Rizky","M. Fadli","Lukman Hakim","Putra Wijaya","Reza Fahlevi","Siti Aisyah"]};
+const keys = Object.keys(names);
 
-const dayNames={senin:"Senin",selasa:"Selasa",rabu:"Rabu",kamis:"Kamis",jumat:"Jumat"};
+let students = [];
+let schedules = {
+  senin: [],
+  selasa: [],
+  rabu: [],
+  kamis: [],
+  jumat: []
+};
 
-function initials(name){const w=name.split(" ");return (w.length===1?w[0].slice(0,2):w[0][0]+w[1][0]).toUpperCase()}
-function todayKey(){return {1:"senin",2:"selasa",3:"rabu",4:"kamis",5:"jumat"}[new Date().getDay()]||"senin"}
+let duty = {
+  senin: [],
+  selasa: [],
+  rabu: [],
+  kamis: [],
+  jumat: []
+};
 
-function updateClock(){const n=new Date();document.getElementById("currentDate").textContent=n.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"});document.getElementById("currentTime").textContent=n.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+" WIB";const h=n.getHours();document.getElementById("greeting").textContent=h<11?"Selamat pagi":h<15?"Selamat siang":h<18?"Selamat sore":"Selamat malam"}
-updateClock();setInterval(updateClock,1000);
+let announcements = [];
 
-function renderStudents(list){const grid=document.getElementById("studentsGrid");grid.innerHTML="";list.forEach((name,i)=>{const c=document.createElement("div");c.className="student-card";c.innerHTML=`<div class="student-avatar">${initials(name)}</div><div><h4>${name}</h4><p>X APAT 1 · Siswa</p></div><span class="student-number">${String(i+1).padStart(2,"0")}</span>`;grid.appendChild(c)});document.getElementById("searchResultCount").textContent=list.length;document.getElementById("studentEmpty").classList.toggle("show",!list.length)}
-const search=document.getElementById("studentSearch");const clear=document.getElementById("clearSearch");search.addEventListener("input",()=>{const q=search.value.toLowerCase().trim();renderStudents(students.filter(s=>s.toLowerCase().includes(q)));clear.style.display=q?"block":"none"});clear.addEventListener("click",()=>{search.value="";search.dispatchEvent(new Event("input"));search.focus()});renderStudents(students);
+/* =========================
+   HELPER
+========================= */
 
-function renderSchedule(day){const data=schedules[day]||[];document.getElementById("scheduleDayTitle").textContent=dayNames[day];document.getElementById("scheduleCount").textContent=data.length;document.getElementById("scheduleList").innerHTML=data.map(x=>`<div class="schedule-row"><div class="schedule-time"><strong>${x[0]}</strong><small>${x[1]}</small></div><div class="timeline-dot"></div><div class="schedule-subject"><strong>${x[2]}</strong><small>${x[3]}</small></div><div class="schedule-room">${x[4]}</div></div>`).join("")}
-document.querySelectorAll(".day-tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".day-tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderSchedule(b.dataset.day)}));renderSchedule("senin");
+const initials = name => {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/);
 
-function renderAnnouncements(){document.getElementById("dashboardAnnouncements").innerHTML=announcements.map(a=>`<div class="announcement-item"><div class="announcement-top"><div><h4>${a.title}</h4><p>${a.content}</p></div><span class="badge ${a.type}">${a.label}</span></div><div class="announcement-date">${a.date}</div></div>`).slice(0,3).join("");document.getElementById("announcementList").innerHTML=announcements.map(a=>`<article class="announcement-large"><span class="badge ${a.type}">${a.label}</span><h3>${a.title}</h3><p>${a.content}</p><div class="announcement-meta"><span><i class="fa-regular fa-calendar"></i> ${a.date}</span><span><i class="fa-solid fa-user-shield"></i> Admin Kelas</span></div></article>`).join("")}
-renderAnnouncements();
+  if (parts.length > 1) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
-function renderDuty(){const t=todayKey();const members=dutySchedule[t]||[];document.getElementById("dashboardDuty").innerHTML=members.map(n=>`<div class="duty-member"><div class="duty-avatar">${initials(n)}</div><strong>${n}</strong></div>`).join("");document.getElementById("todayDutyCount").textContent=members.length;document.getElementById("dutyGrid").innerHTML=Object.keys(dutySchedule).map(d=>`<div class="duty-day ${d===t?"today":""}"><div class="duty-day-header"><h3>${dayNames[d]}</h3>${d===t?'<span class="today-label">HARI INI</span>':""}</div><div class="duty-list">${dutySchedule[d].map(n=>`<div class="duty-list-item"><div class="duty-avatar">${initials(n)}</div><div><strong>${n}</strong><small>Petugas piket</small></div></div>`).join("")}</div></div>`).join("")}
-renderDuty();
+  return String(parts[0] || "")
+    .slice(0, 2)
+    .toUpperCase();
+};
 
-function renderDashboardSchedule(){const d=todayKey(),data=schedules[d]||[];document.getElementById("todayScheduleCount").textContent=data.length;document.getElementById("dashboardSchedule").innerHTML=data.map(x=>`<div class="mini-schedule"><div class="time-box"><strong>${x[0]}</strong><small>${x[1]}</small></div><div class="schedule-dot"></div><div class="mini-schedule-info"><strong>${x[2]}</strong><small>${x[3]}</small></div></div>`).join("")}
-renderDashboardSchedule();
+const esc = value =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[char])
+  );
 
-const pageNames={dashboard:"Dashboard",students:"Daftar Siswa",schedule:"Jadwal Pelajaran",announcements:"Pengumuman",duty:"Jadwal Piket",about:"Tentang Kelas"};
-function openSection(id){document.querySelectorAll(".page-section").forEach(s=>s.classList.toggle("active",s.id===id));document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.section===id));document.getElementById("pageLabel").textContent=pageNames[id];window.scrollTo({top:0,behavior:"smooth"});closeSidebar()}
-document.querySelectorAll(".nav-item").forEach(n=>n.addEventListener("click",()=>openSection(n.dataset.section)));
-document.querySelectorAll("[data-target]").forEach(b=>b.addEventListener("click",()=>openSection(b.dataset.target)));
+const today = () => {
+  return {
+    1: "senin",
+    2: "selasa",
+    3: "rabu",
+    4: "kamis",
+    5: "jumat"
+  }[new Date().getDay()] || "senin";
+};
 
-const sidebar=document.getElementById("sidebar"),menu=document.getElementById("menuButton"),overlay=document.getElementById("sidebarOverlay");
-function closeSidebar(){sidebar.classList.remove("open");overlay.classList.remove("show")}
-menu.addEventListener("click",()=>{sidebar.classList.add("open");overlay.classList.add("show")});overlay.addEventListener("click",closeSidebar);
-document.addEventListener("keydown",e=>{if(e.key==="/"&&document.activeElement.tagName!=="INPUT"){e.preventDefault();openSection("students");search.focus()}});
-console.log("CLASSHUB V1.0 — X APAT 1");
+const getValue = (obj, fields, fallback = "") => {
+  for (const field of fields) {
+    if (
+      obj &&
+      obj[field] !== undefined &&
+      obj[field] !== null &&
+      obj[field] !== ""
+    ) {
+      return obj[field];
+    }
+  }
+
+  return fallback;
+};
+
+const normalizeDay = value => {
+  const day = String(value || "")
+    .toLowerCase()
+    .trim();
+
+  if (day.startsWith("sen")) return "senin";
+  if (day.startsWith("sel")) return "selasa";
+  if (day.startsWith("rab")) return "rabu";
+  if (day.startsWith("kam")) return "kamis";
+  if (day.startsWith("jum")) return "jumat";
+
+  return day;
+};
+
+const formatTime = value => {
+  if (!value) return "";
+  return String(value).slice(0, 5);
+};
+
+const setText = (id, value) => {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = value;
+  }
+};
+
+/* =========================
+   CLOCK
+========================= */
+
+function updateClock() {
+  const date = new Date();
+  const hour = date.getHours();
+
+  setText(
+    "date",
+    date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    })
+  );
+
+  setText(
+    "time",
+    date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }) + " WIB"
+  );
+
+  let greeting = "☀ SELAMAT PAGI";
+
+  if (hour >= 11 && hour < 15) {
+    greeting = "☀ SELAMAT SIANG";
+  } else if (hour >= 15 && hour < 18) {
+    greeting = "☀ SELAMAT SORE";
+  } else if (hour >= 18) {
+    greeting = "☾ SELAMAT MALAM";
+  }
+
+  setText(
+    "greeting",
+    greeting + " • CLASS MANAGEMENT SYSTEM"
+  );
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+
+/* =========================
+   STUDENTS
+========================= */
+
+function renderStudents(list) {
+  const grid = document.getElementById("studentsGrid");
+
+  grid.innerHTML = list
+    .map((student, index) => {
+      const name = student.name || "Tanpa Nama";
+      const className = student.class_name || "X APAT 1";
+
+      return `
+        <article class="student">
+          <i class="avatar">${initials(name)}</i>
+
+          <div>
+            <h4>${esc(name)}</h4>
+            <p>${esc(className)} · Siswa</p>
+          </div>
+
+          <span class="num">
+            ${String(index + 1).padStart(2, "0")}
+          </span>
+        </article>
+      `;
+    })
+    .join("");
+
+  setText("result", list.length);
+  setText("totalStudents", students.length);
+  setText("studentPill", `${students.length} siswa`);
+
+  document
+    .getElementById("empty")
+    .classList.toggle("show", list.length === 0);
+}
+
+async function loadStudents() {
+  const { data, error } = await SUPABASE
+    .from("students")
+    .select("*")
+    .order("name", {
+      ascending: true
+    });
+
+  if (error) {
+    throw new Error(
+      "Gagal mengambil data siswa: " + error.message
+    );
+  }
+
+  students = (data || []).map(student => ({
+    id: student.id,
+
+    name: getValue(
+      student,
+      ["name", "full_name", "student_name"],
+      "Tanpa Nama"
+    ),
+
+    class_name: getValue(
+      student,
+      ["class_name", "class", "kelas"],
+      "X APAT 1"
+    ),
+
+    student_number: getValue(
+      student,
+      ["student_number", "number", "no"],
+      ""
+    )
+  }));
+
+  renderStudents(students);
+}
+
+/* =========================
+   SCHEDULE
+========================= */
+
+function renderSchedule(day) {
+  const data = schedules[day] || [];
+
+  setText("dayTitle", names[day] || day);
+  setText("schedCount", data.length);
+
+  document.getElementById("scheduleList").innerHTML =
+    data
+      .map(item => {
+        return `
+          <div class="scheduleRow">
+
+            <time>
+              <b>${esc(item.start)}</b>
+              <small>${esc(item.end)}</small>
+            </time>
+
+            <i class="dot"></i>
+
+            <div class="subject">
+              <b>${esc(item.subject)}</b>
+              <small>${esc(item.teacher)}</small>
+            </div>
+
+            <span class="room">
+              ${esc(item.room)}
+            </span>
+
+          </div>
+        `;
+      })
+      .join("");
+}
+
+function renderDays() {
+  document.getElementById("days").innerHTML =
+    keys
+      .map(day => {
+        return `
+          <button
+            class="day"
+            data-day="${day}"
+          >
+            <b>${names[day].slice(0, 3)}</b>
+            <small>${names[day]}</small>
+          </button>
+        `;
+      })
+      .join("");
+
+  document
+    .querySelectorAll(".day")
+    .forEach(button => {
+      button.onclick = () => {
+
+        document
+          .querySelectorAll(".day")
+          .forEach(item =>
+            item.classList.remove("active")
+          );
+
+        button.classList.add("active");
+
+        renderSchedule(
+          button.dataset.day
+        );
+      };
+    });
+
+  const currentDay = today();
+
+  const activeButton =
+    document.querySelector(
+      `[data-day="${currentDay}"]`
+    );
+
+  if (activeButton) {
+    activeButton.classList.add("active");
+  }
+
+  renderSchedule(currentDay);
+}
+
+async function loadSchedules() {
+  const { data, error } = await SUPABASE
+    .from("schedules")
+    .select("*");
+
+  if (error) {
+    throw new Error(
+      "Gagal mengambil jadwal: " + error.message
+    );
+  }
+
+  schedules = {
+    senin: [],
+    selasa: [],
+    rabu: [],
+    kamis: [],
+    jumat: []
+  };
+
+  (data || []).forEach(item => {
+
+    const day = normalizeDay(
+      getValue(
+        item,
+        ["day", "day_name", "hari"],
+        ""
+      )
+    );
+
+    if (!schedules[day]) return;
+
+    schedules[day].push({
+      start: formatTime(
+        getValue(
+          item,
+          ["start_time", "start", "mulai"],
+          ""
+        )
+      ),
+
+      end: formatTime(
+        getValue(
+          item,
+          ["end_time", "end", "selesai"],
+          ""
+        )
+      ),
+
+      subject: getValue(
+        item,
+        [
+          "subject",
+          "subject_name",
+          "lesson",
+          "mata_pelajaran"
+        ],
+        "Pelajaran"
+      ),
+
+      teacher: getValue(
+        item,
+        [
+          "teacher",
+          "teacher_name",
+          "guru"
+        ],
+        "Bapak/Ibu Guru"
+      ),
+
+      room: getValue(
+        item,
+        [
+          "room",
+          "room_name",
+          "ruangan"
+        ],
+        "X APAT 1"
+      )
+    });
+  });
+
+  keys.forEach(day => {
+    schedules[day].sort(
+      (a, b) =>
+        a.start.localeCompare(b.start)
+    );
+  });
+
+  renderDays();
+}
+
+/* =========================
+   ANNOUNCEMENTS
+========================= */
+
+function renderAnnouncements() {
+
+  document.getElementById(
+    "dashAnnouncements"
+  ).innerHTML = announcements
+    .slice(0, 2)
+    .map(item => {
+
+      return `
+        <div class="announcement">
+          <h4>${esc(item.title)}</h4>
+          <p>${esc(item.body)}</p>
+          <small>${esc(item.date)}</small>
+        </div>
+      `;
+
+    })
+    .join("");
+
+  document.getElementById(
+    "announceList"
+  ).innerHTML = announcements
+    .map(item => {
+
+      return `
+        <article class="largeAnn">
+
+          <span class="badge">
+            INFO
+          </span>
+
+          <h2>
+            ${esc(item.title)}
+          </h2>
+
+          <p>
+            ${esc(item.body)}
+          </p>
+
+          <div class="meta">
+            <i class="fa-regular fa-calendar"></i>
+            ${esc(item.date)}
+            · Admin Kelas
+          </div>
+
+        </article>
+      `;
+
+    })
+    .join("");
+}
+
+async function loadAnnouncements() {
+
+  const { data, error } =
+    await SUPABASE
+      .from("announcements")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    throw new Error(
+      "Gagal mengambil pengumuman: " +
+      error.message
+    );
+  }
+
+  announcements = (data || []).map(item => {
+
+    const rawDate = getValue(
+      item,
+      [
+        "date",
+        "published_at",
+        "created_at"
+      ],
+      ""
+    );
+
+    return {
+      title: getValue(
+        item,
+        ["title", "judul"],
+        "Pengumuman"
+      ),
+
+      body: getValue(
+        item,
+        [
+          "body",
+          "content",
+          "description",
+          "isi"
+        ],
+        ""
+      ),
+
+      date: String(rawDate).slice(0, 10)
+    };
+  });
+
+  renderAnnouncements();
+}
+
+/* =========================
+   DUTY
+========================= */
+
+function renderDashboard() {
+
+  const currentDay = today();
+
+  const scheduleToday =
+    schedules[currentDay] || [];
+
+  const dutyToday =
+    duty[currentDay] || [];
+
+  setText(
+    "todayCount",
+    scheduleToday.length
+  );
+
+  setText(
+    "dutyCount",
+    dutyToday.length
+  );
+
+  document.getElementById(
+    "dashSchedule"
+  ).innerHTML = scheduleToday
+    .map(item => {
+
+      return `
+        <div class="minirow">
+
+          <time>
+            <b>${esc(item.start)}</b>
+            <small>${esc(item.end)}</small>
+          </time>
+
+          <i class="dot"></i>
+
+          <div>
+            <strong>
+              ${esc(item.subject)}
+            </strong>
+
+            <p>
+              ${esc(item.teacher)}
+            </p>
+          </div>
+
+        </div>
+      `;
+
+    })
+    .join("");
+
+  document.getElementById(
+    "dashDuty"
+  ).innerHTML = dutyToday
+    .map(name => {
+
+      return `
+        <div class="person">
+          <i>${initials(name)}</i>
+          <b>${esc(name)}</b>
+        </div>
+      `;
+
+    })
+    .join("");
+
+  document.getElementById(
+    "dutyGrid"
+  ).innerHTML = keys
+    .map(day => {
+
+      return `
+        <article
+          class="dutyday ${day === currentDay ? "today" : ""}"
+        >
+
+          <div class="dutyhead">
+
+            <h3>
+              ${names[day]}
+            </h3>
+
+            ${
+              day === currentDay
+                ? `<span class="today">HARI INI</span>`
+                : ""
+            }
+
+          </div>
+
+          ${(duty[day] || [])
+            .map(name => {
+
+              return `
+                <div class="dutyitem">
+                  <i>${initials(name)}</i>
+                  <b>${esc(name)}</b>
+                </div>
+              `;
+
+            })
+            .join("")}
+
+        </article>
+      `;
+
+    })
+    .join("");
+}
+
+async function loadDuty() {
+
+  const { data, error } =
+    await SUPABASE
+      .from("duty_rosters")
+      .select("*");
+
+  if (error) {
+    throw new Error(
+      "Gagal mengambil jadwal piket: " +
+      error.message
+    );
+  }
+
+  duty = {
+    senin: [],
+    selasa: [],
+    rabu: [],
+    kamis: [],
+    jumat: []
+  };
+
+  const studentMap =
+    new Map(
+      students.map(student => [
+        String(student.id),
+        student.name
+      ])
+    );
+
+  (data || []).forEach(item => {
+
+    const day =
+      normalizeDay(
+        getValue(
+          item,
+          ["day", "day_name", "hari"],
+          ""
+        )
+      );
+
+    if (!duty[day]) return;
+
+    let name =
+      getValue(
+        item,
+        [
+          "name",
+          "student_name",
+          "student"
+        ],
+        ""
+      );
+
+    const studentId =
+      getValue(
+        item,
+        [
+          "student_id",
+          "studentId",
+          "id_student"
+        ],
+        ""
+      );
+
+    if (!name && studentId) {
+      name =
+        studentMap.get(
+          String(studentId)
+        ) || "";
+    }
+
+    if (name) {
+      duty[day].push(
+        String(name)
+      );
+    }
+  });
+
+  renderDashboard();
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+const searchInput =
+  document.getElementById("search");
+
+const clearButton =
+  document.getElementById("clear");
+
+searchInput.addEventListener(
+  "input",
+  () => {
+
+    const query =
+      searchInput.value
+        .toLowerCase()
+        .trim();
+
+    const result =
+      students.filter(
+        student =>
+          student.name
+            .toLowerCase()
+            .includes(query)
+      );
+
+    renderStudents(result);
+
+    clearButton.style.display =
+      query ? "block" : "none";
+  }
+);
+
+clearButton.onclick = () => {
+
+  searchInput.value = "";
+
+  searchInput.dispatchEvent(
+    new Event("input")
+  );
+
+  searchInput.focus();
+};
+
+/* =========================
+   NAVIGATION
+========================= */
+
+const titles = {
+  dashboard: "Dashboard",
+  students: "Daftar Siswa",
+  schedule: "Jadwal Pelajaran",
+  announcements: "Pengumuman",
+  duty: "Jadwal Piket",
+  about: "Tentang"
+};
+
+function go(page) {
+
+  document
+    .querySelectorAll(".page")
+    .forEach(element => {
+
+      element.classList.toggle(
+        "active",
+        element.id === page
+      );
+
+    });
+
+  document
+    .querySelectorAll(".nav")
+    .forEach(element => {
+
+      element.classList.toggle(
+        "active",
+        element.dataset.page === page
+      );
+
+    });
+
+  setText(
+    "pageTitle",
+    titles[page] || page
+  );
+
+  closeMenu();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+document
+  .querySelectorAll(".nav")
+  .forEach(button => {
+
+    button.onclick = () =>
+      go(button.dataset.page);
+
+  });
+
+document
+  .querySelectorAll("[data-go]")
+  .forEach(button => {
+
+    button.onclick = () =>
+      go(button.dataset.go);
+
+  });
+
+/* =========================
+   MOBILE MENU
+========================= */
+
+const sidebar =
+  document.getElementById("sidebar");
+
+const backdrop =
+  document.getElementById("backdrop");
+
+function closeMenu() {
+
+  sidebar.classList.remove("open");
+
+  backdrop.classList.remove("show");
+}
+
+document
+  .getElementById("menuBtn")
+  .onclick = () => {
+
+    sidebar.classList.add("open");
+
+    backdrop.classList.add("show");
+
+  };
+
+backdrop.onclick =
+  closeMenu;
+
+/* =========================
+   ADMIN MODAL
+========================= */
+
+const modal =
+  document.getElementById("modal");
+
+document
+  .getElementById("adminBtn")
+  .onclick = () =>
+    modal.classList.add("show");
+
+document
+  .getElementById("closeModal")
+  .onclick = () =>
+    modal.classList.remove("show");
+
+modal.onclick = event => {
+
+  if (event.target === modal) {
+    modal.classList.remove("show");
+  }
+
+};
+
+function showToast(message) {
+
+  modal.classList.remove("show");
+
+  const toast =
+    document.getElementById("toast");
+
+  toast.textContent =
+    message + " siap dikembangkan.";
+
+  toast.classList.add("show");
+
+  setTimeout(
+    () =>
+      toast.classList.remove("show"),
+    2200
+  );
+}
+
+/* =========================
+   LOAD DATABASE
+========================= */
+
+async function loadAll() {
+
+  try {
+
+    await loadStudents();
+
+    await Promise.all([
+      loadSchedules(),
+      loadAnnouncements()
+    ]);
+
+    await loadDuty();
+
+    console.log(
+      "CLASSHUB berhasil terhubung ke Supabase."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "CLASSHUB DATABASE ERROR:",
+      error
+    );
+
+    const toast =
+      document.getElementById("toast");
+
+    toast.textContent =
+      "Database error: " +
+      error.message;
+
+    toast.classList.add("show");
+
+    setTimeout(
+      () =>
+        toast.classList.remove("show"),
+      6000
+    );
+  }
+}
+
+loadAll();
